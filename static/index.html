@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Information Chaos Engine // Autonomous Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    #three-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+    .glass { background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+
+  <canvas id="three-canvas"></canvas>
+
+  <!-- Navbar -->
+  <header class="glass sticky top-0 z-40 border-b border-slate-800/80 px-8 py-3.5 flex justify-between items-center shadow-2xl">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 flex items-center justify-center font-black text-white shadow-[0_0_20px_rgba(6,182,212,0.5)]">⚡</div>
+      <div>
+        <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-200 to-fuchsia-400">
+          CHAOS ENGINE <span class="text-xs font-mono text-cyan-400 tracking-normal px-2 py-0.5 rounded-full border border-cyan-500/40 bg-cyan-950/40">v3.5 PRO</span>
+        </h1>
+        <p class="text-[10px] text-slate-400 font-mono">AUTONOMOUS MULTI-TENANT CONFLICT RADAR</p>
+      </div>
+    </div>
+
+    <!-- User Profile & Time-Greeting Header -->
+    <div class="flex items-center gap-4">
+      <div id="user-header-info" class="hidden flex items-center gap-3">
+        <div class="text-right">
+          <div id="time-greeting-text" class="text-xs font-bold text-cyan-300">Good Morning!</div>
+          <div id="user-display-name" class="text-[11px] text-slate-400 font-mono">Student</div>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-bold text-xs shadow-md border border-cyan-400/40" id="user-avatar-initial">U</div>
+        <button onclick="logoutUser()" class="bg-slate-900 hover:bg-rose-950/70 border border-slate-700 hover:border-rose-800 text-slate-300 hover:text-rose-300 text-xs px-2.5 py-1.5 rounded-xl font-mono transition">Logout</button>
+      </div>
+
+      <button id="auth-login-btn" onclick="openAuthModal('login')" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-4 py-2 rounded-xl font-bold shadow-lg shadow-cyan-950">
+        🔑 Login / Sign Up
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
+
+    <!-- Personalized Welcome Banner -->
+    <div class="glass p-5 rounded-3xl border border-cyan-500/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div>
+        <h2 id="big-greeting-text" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-indigo-300">
+          Welcome to your Chaos Engine
+        </h2>
+        <p class="text-xs text-slate-400 mt-1 font-mono">All circulars, PDFs, and broadcasts isolated to your private student session.</p>
+      </div>
+      <span class="text-xs font-mono bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 px-3 py-1.5 rounded-xl flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span id="session-badge">GUEST MODE (Sign In for Privacy)</span>
+      </span>
+    </div>
+
+    <!-- HUD Metrics Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="glass-card p-4 rounded-2xl flex flex-col justify-between border-l-4 border-cyan-500">
+        <div class="text-[10px] uppercase font-mono text-slate-400">Documents Ingested</div>
+        <div id="metric-docs" class="text-2xl font-black text-cyan-400 mt-1">0</div>
+        <div class="text-[10px] text-slate-500 mt-1">Multi-modal Ingestion</div>
+      </div>
+      <div class="glass-card p-4 rounded-2xl flex flex-col justify-between border-l-4 border-emerald-500">
+        <div class="text-[10px] uppercase font-mono text-slate-400">Entities Confirmed</div>
+        <div id="metric-resolved" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+        <div class="text-[10px] text-slate-500 mt-1">Deduplicated & Cleaned</div>
+      </div>
+      <div class="glass-card p-4 rounded-2xl flex flex-col justify-between border-l-4 border-amber-500">
+        <div class="text-[10px] uppercase font-mono text-slate-400">Active Conflicts Intercepted</div>
+        <div id="metric-conflicts" class="text-2xl font-black text-amber-400 mt-1">0</div>
+        <div class="text-[10px] text-slate-500 mt-1">Awaiting Verification</div>
+      </div>
+      <div class="glass-card p-4 rounded-2xl flex flex-col justify-between border-l-4 border-purple-500">
+        <div class="text-[10px] uppercase font-mono text-slate-400">Confidence Accuracy</div>
+        <div id="metric-conf" class="text-2xl font-black text-purple-400 mt-1">99.4%</div>
+        <div class="text-[10px] text-slate-500 mt-1">Heuristic NLP Score</div>
+      </div>
+    </div>
+
+    <!-- Active Conflict Warning Radar Banner -->
+    <div id="conflict-container" class="hidden space-y-4"></div>
+
+    <!-- Ingestion Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div class="lg:col-span-2 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Method 1: Pasted Text + Voice Dictation -->
+          <div class="glass p-5 rounded-2xl flex flex-col justify-between hover:border-cyan-500/50 transition">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <h2 class="font-bold text-sm text-cyan-300 flex items-center gap-2">📄 Method 1: Text & Voice</h2>
+                <button id="voice-btn" onclick="startVoiceInput()" class="bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition">
+                  <span id="voice-dot" class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <span id="voice-txt">🎙️ Speak Notice</span>
+                </button>
+              </div>
+              <textarea id="text-input" rows="3" placeholder="Paste circular text or click Speak Notice..." class="w-full text-xs p-3 bg-slate-900/80 border border-slate-700/80 rounded-xl focus:border-cyan-500 outline-none text-slate-200"></textarea>
+            </div>
+            <button onclick="submitText()" class="mt-3 w-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-lg shadow-cyan-950">ANALYZE TEXT</button>
+          </div>
+
+          <!-- Method 2: PDF Upload -->
+          <div class="glass p-5 rounded-2xl flex flex-col justify-between hover:border-indigo-500/50 transition">
+            <div>
+              <h2 class="font-bold text-sm text-indigo-300 mb-2 flex items-center gap-2">📁 Method 2: PDF Parser</h2>
+              <p class="text-[11px] text-slate-400 mb-3 font-mono">Upload university notice or exam schedule.</p>
+              <input type="file" id="pdf-input" accept=".pdf" class="w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-900/60 file:text-indigo-200 border border-slate-700 p-2 rounded-xl bg-slate-900/50">
+            </div>
+            <button onclick="submitPdf()" class="mt-3 w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-lg shadow-indigo-950">EXTRACT DOCUMENT</button>
+          </div>
+        </div>
+
+        <!-- Method 3: Manual Entry -->
+        <div class="glass p-5 rounded-2xl hover:border-slate-600 transition">
+          <h2 class="font-bold text-sm text-slate-300 mb-3 flex items-center gap-2">✍️ Method 3: Manual Registry</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+            <input type="text" id="manual-title" placeholder="Task Name (e.g. Lab Viva)" class="text-xs p-2.5 bg-slate-900/80 border border-slate-700 rounded-xl outline-none focus:border-slate-500">
+            <input type="text" id="manual-date" placeholder="Deadline (e.g. 28 Oct)" class="text-xs p-2.5 bg-slate-900/80 border border-slate-700 rounded-xl outline-none focus:border-slate-500">
+            <input type="text" id="manual-subject" placeholder="Subject (e.g. Web Tech)" class="text-xs p-2.5 bg-slate-900/80 border border-slate-700 rounded-xl outline-none focus:border-slate-500">
+          </div>
+          <button onclick="submitManual()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2.5 rounded-xl transition border border-slate-700">SUBMIT RECORD</button>
+        </div>
+      </div>
+
+      <!-- Right Column: WhatsApp Live Webhook -->
+      <div class="glass rounded-2xl border border-emerald-900/60 flex flex-col overflow-hidden h-[410px] shadow-2xl">
+        <div class="bg-emerald-950/90 px-4 py-3 border-b border-emerald-800/60 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-xs">💬</div>
+            <div>
+              <div class="font-bold text-xs text-emerald-200">Official Notice Group</div>
+              <div class="text-[9px] text-emerald-400 font-mono">Stream Hook Active</div>
+            </div>
+          </div>
+          <span class="text-[9px] bg-emerald-900 border border-emerald-700 px-2 py-0.5 rounded text-emerald-300 font-mono">Live</span>
+        </div>
+
+        <div id="wa-chat-box" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-950/80 text-xs font-sans">
+          <div class="bg-emerald-950/60 text-emerald-200 p-2.5 rounded-xl max-w-[85%] self-start border border-emerald-800/40">
+            👋 <b>Class Rep:</b> Post circulars here. Chaos Engine captures them instantaneously.
+          </div>
+        </div>
+
+        <div class="bg-slate-950/90 p-2 border-t border-slate-800/80 flex gap-1.5 overflow-x-auto text-[10px]">
+          <button onclick="injectWhatsApp('DBMS assignment due on 18 October.')" class="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 px-2 py-1 rounded-lg whitespace-nowrap">DBMS 18 Oct</button>
+          <button onclick="injectWhatsApp('Project presentation is on 20 October.')" class="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 px-2 py-1 rounded-lg whitespace-nowrap">Presentation 20 Oct</button>
+          <button onclick="injectWhatsApp('Revised notice: presentation moved to 22 October!')" class="bg-amber-950/80 border border-amber-700 hover:bg-amber-900 text-amber-300 px-2 py-1 rounded-lg whitespace-nowrap font-bold">⚡ Conflict Trigger</button>
+        </div>
+
+        <div class="p-2.5 bg-slate-950 border-t border-slate-800 flex gap-2">
+          <input type="text" id="wa-input" placeholder="Type college notice..." class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500">
+          <button onclick="sendWhatsAppMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-1.5 rounded-xl font-bold">Send</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Unified Dashboard Table -->
+    <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80">
+      <div class="p-5 border-b border-slate-800/80 flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="font-bold text-base text-slate-200 flex items-center gap-2">
+            <span>RESOLVED ENTITIES & RADAR STREAM</span>
+          </h2>
+          <p class="text-[11px] text-slate-400 font-mono">Traceable evidence trail & real-time sync</p>
+        </div>
+        <div class="flex gap-2 font-mono">
+          <button onclick="fetchDashboard()" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl transition">🔄 Refresh</button>
+          <button onclick="clearEverything()" class="text-xs bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 px-3 py-1.5 rounded-xl font-bold transition">🗑️ Purge & Reset</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-900/60 text-slate-400 border-b border-slate-800/80 font-mono uppercase tracking-wider text-[11px]">
+              <th class="p-4">Task Name</th>
+              <th class="p-4">Deadline</th>
+              <th class="p-4">Subject</th>
+              <th class="p-4">Source Origin</th>
+              <th class="p-4">Integrity Status</th>
+              <th class="p-4 text-right">Action Trail</th>
+            </tr>
+          </thead>
+          <tbody id="task-table-body" class="divide-y divide-slate-800/50 font-sans">
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-500 font-mono">NO ACTIVE ENTITIES INGESTED. FEED INPUTS ABOVE.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 🔐 AUTHENTICATION MODAL (SIGNUP / LOGIN + OTP) -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+    <div class="glass max-w-md w-full p-6 rounded-3xl shadow-2xl border border-cyan-500/40 space-y-4">
+      
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔐</span>
+          <h3 class="font-bold text-base text-cyan-300" id="auth-modal-title">Student Portal Login</h3>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg bg-cyan-600 text-white font-bold transition">LOGIN</button>
+        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 rounded-lg text-slate-400 font-bold transition">SIGN UP</button>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="space-y-3 text-xs">
+        <div id="auth-name-container" class="hidden">
+          <label class="block text-slate-400 mb-1 font-mono">Full Name</label>
+          <input type="text" id="auth-name" placeholder="e.g. Rahul Sharma" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-white">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-mono">Phone Number or Email</label>
+          <div class="flex gap-2">
+            <input type="text" id="auth-identifier" placeholder="e.g. 9876543210 or student@gmail.com" class="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-white">
+            <button id="send-otp-btn" onclick="requestOTP()" class="hidden bg-cyan-900/80 hover:bg-cyan-800 text-cyan-300 border border-cyan-700 px-3 rounded-xl font-mono text-[11px] whitespace-nowrap">Send OTP</button>
+          </div>
+        </div>
+
+        <div id="auth-otp-container" class="hidden">
+          <label class="block text-slate-400 mb-1 font-mono">Enter 6-Digit OTP</label>
+          <input type="text" id="auth-otp" placeholder="Enter received OTP" class="w-full p-2.5 bg-slate-900 border border-amber-500/80 rounded-xl outline-none text-amber-300 font-mono tracking-widest text-center text-sm">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-mono">Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl outline-none focus:border-cyan-500 text-white">
+        </div>
+
+        <div id="auth-error-msg" class="hidden text-rose-400 text-[11px] font-mono bg-rose-950/40 border border-rose-800 p-2 rounded-xl"></div>
+      </div>
+
+      <button id="auth-submit-btn" onclick="handleAuthSubmit()" class="w-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-cyan-950 text-xs">
+        LOGIN TO DASHBOARD
+      </button>
+
+    </div>
+  </div>
+
+  <!-- 🤖 AI Chatbot Widget -->
+  <div class="fixed bottom-6 right-6 z-50">
+    <button id="chatbot-toggle-btn" onclick="toggleChatbot()" class="bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 hover:opacity-90 text-white p-3.5 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 font-bold text-xs transition transform hover:scale-105">
+      <span class="text-lg">🤖</span>
+      <span>Ask Chaos AI</span>
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+    </button>
+
+    <div id="chatbot-window" class="hidden absolute bottom-16 right-0 w-[360px] md:w-[400px] h-[480px] glass rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-cyan-500/40">
+      <div class="bg-slate-900/90 p-4 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500 flex items-center justify-center text-base">🤖</div>
+          <div>
+            <div class="font-bold text-xs text-cyan-300">ChaosBot // Student Copilot</div>
+            <div class="text-[9px] text-slate-400 font-mono">Context-Aware Neural Assistant</div>
+          </div>
+        </div>
+        <button onclick="toggleChatbot()" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+      </div>
+
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs font-sans">
+        <div class="bg-slate-900/90 text-slate-200 p-3 rounded-2xl rounded-tl-none border border-slate-800 max-w-[85%]">
+          👋 Hello! Main aapka <b>Student AI Copilot</b> hoon. Mujhse deadlines, exams ya conflicts ke bare me puch sakte hain!
+        </div>
+      </div>
+
+      <div class="px-3 py-2 bg-slate-950/80 border-t border-slate-800/80 flex gap-1.5 overflow-x-auto text-[10px]">
+        <button onclick="askBotPreset('DBMS submission kab hai?')" class="bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-900 px-2 py-1 rounded-lg whitespace-nowrap">DBMS Date?</button>
+        <button onclick="askBotPreset('Kya koi conflict detected hai?')" class="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-900 px-2 py-1 rounded-lg whitespace-nowrap">Conflicts?</button>
+        <button onclick="askBotPreset('Saare pending tasks ki list batao')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg whitespace-nowrap">All Tasks</button>
+      </div>
+
+      <div class="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+        <input type="text" id="chat-user-input" onkeypress="handleChatEnter(event)" placeholder="Puchiye apna sawaal..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500">
+        <button onclick="sendChatMessage()" class="bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs px-4 py-2 rounded-xl font-bold shadow-md">Ask</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side-by-Side Visual Diff Modal -->
+  <div id="diff-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+    <div class="glass max-w-2xl w-full p-6 rounded-3xl shadow-2xl space-y-4 border border-cyan-500/30">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-base text-cyan-300 flex items-center gap-2">
+          <span>🔍 Conflict Inspection Matrix (Diff View)</span>
+        </h3>
+        <button onclick="closeDiffModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-400 font-mono">Conflicting date vectors isolated across ingestion timestamps:</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border border-amber-600/50 bg-amber-950/30 p-4 rounded-2xl space-y-2">
+          <div class="text-[10px] font-mono font-bold text-amber-400 uppercase">Prior Record</div>
+          <div class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-amber-900/40" id="diff-old-text">...</div>
+          <div class="text-xs text-amber-300 font-mono">Date: <span class="font-bold text-white bg-amber-900/60 px-2 py-0.5 rounded" id="diff-old-date">...</span></div>
+        </div>
+        <div class="border border-rose-600/50 bg-rose-950/30 p-4 rounded-2xl space-y-2">
+          <div class="text-[10px] font-mono font-bold text-rose-400 uppercase">Incoming Revision</div>
+          <div class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-xl border border-rose-900/40" id="diff-new-text">...</div>
+          <div class="text-xs text-rose-300 font-mono">Date: <span class="font-bold text-white bg-rose-900/60 px-2 py-0.5 rounded" id="diff-new-date">...</span></div>
+        </div>
+      </div>
+      <div class="bg-slate-900/90 p-3 rounded-xl text-xs text-slate-400 flex justify-between items-center border border-slate-800">
+        <span class="font-mono">Status: Awaiting Human Override</span>
+        <button onclick="closeDiffModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- AUTHENTICATION & USER SESSION STATE ---
+    let currentUser = JSON.parse(localStorage.getItem('chaos_user')) || null;
+    let authMode = 'login';
+
+    function getAuthHeaders() {
+      return currentUser ? { 'X-User-Id': currentUser.id } : {};
+    }
+
+    // Dynamic Time-Based Greeting Function
+    function getTimeBasedGreeting() {
+      const hour = new Date().getHours();
+      if (hour >= 4 && hour < 12) return { text: "Good Morning", emoji: "🌅" };
+      if (hour >= 12 && hour < 17) return { text: "Good Afternoon", emoji: "☀️" };
+      if (hour >= 17 && hour < 22) return { text: "Good Evening", emoji: "🌆" };
+      return { text: "Late Night Focus", emoji: "🌙" };
+    }
+
+    function updateGreetingUI() {
+      const greeting = getTimeBasedGreeting();
+      if (currentUser) {
+        document.getElementById('user-header-info').classList.remove('hidden');
+        document.getElementById('auth-login-btn').classList.add('hidden');
+        document.getElementById('time-greeting-text').innerText = `${greeting.emoji} ${greeting.text}`;
+        document.getElementById('user-display-name').innerText = currentUser.name;
+        document.getElementById('user-avatar-initial').innerText = currentUser.name.charAt(0).toUpperCase();
+
+        document.getElementById('big-greeting-text').innerText = `${greeting.emoji} ${greeting.text}, ${currentUser.name}!`;
+        document.getElementById('session-badge').innerText = `SECURE SESSION: ${currentUser.name.toUpperCase()}`;
+      } else {
+        document.getElementById('user-header-info').classList.add('hidden');
+        document.getElementById('auth-login-btn').classList.remove('hidden');
+        document.getElementById('big-greeting-text').innerText = `${greeting.emoji} ${greeting.text}, Student!`;
+        document.getElementById('session-badge').innerText = `GUEST MODE (Sign In for Privacy)`;
+      }
+    }
+
+    function openAuthModal(mode) {
+      authMode = mode;
+      switchAuthTab(mode);
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const loginTab = document.getElementById('tab-login-btn');
+      const signupTab = document.getElementById('tab-signup-btn');
+      const nameBox = document.getElementById('auth-name-container');
+      const otpBtn = document.getElementById('send-otp-btn');
+      const otpBox = document.getElementById('auth-otp-container');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'signup') {
+        signupTab.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white font-bold transition";
+        loginTab.className = "flex-1 py-1.5 rounded-lg text-slate-400 font-bold transition";
+        nameBox.classList.remove('hidden');
+        otpBtn.classList.remove('hidden');
+        otpBox.classList.remove('hidden');
+        submitBtn.innerText = "VERIFY OTP & CREATE ACCOUNT";
+      } else {
+        loginTab.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white font-bold transition";
+        signupTab.className = "flex-1 py-1.5 rounded-lg text-slate-400 font-bold transition";
+        nameBox.classList.add('hidden');
+        otpBtn.classList.add('hidden');
+        otpBox.classList.add('hidden');
+        submitBtn.innerText = "LOGIN TO DASHBOARD";
+      }
+    }
+
+    async function requestOTP() {
+      const identifier = document.getElementById('auth-identifier').value.trim();
+      if (!identifier) return alert("Please enter phone or email first!");
+
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({identifier})
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`📩 [OTP Gateway]: OTP sent to ${identifier}!\n\nYour 6-Digit OTP is: ${data.demo_otp}`);
+        document.getElementById('auth-otp').value = data.demo_otp;
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const identifier = document.getElementById('auth-identifier').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const errorMsg = document.getElementById('auth-error-msg');
+      errorMsg.classList.add('hidden');
+
+      if (authMode === 'signup') {
+        const name = document.getElementById('auth-name').value.trim();
+        const otp = document.getElementById('auth-otp').value.trim();
+        
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, identifier, password, otp})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentUser = data.user;
+          localStorage.setItem('chaos_user', JSON.stringify(currentUser));
+          closeAuthModal();
+          updateGreetingUI();
+          fetchDashboard();
+          alert(`🎉 Welcome ${currentUser.name}! Your account is now active.`);
+        } else {
+          errorMsg.innerText = data.message;
+          errorMsg.classList.remove('hidden');
+        }
+      } else {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({identifier, password})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentUser = data.user;
+          localStorage.setItem('chaos_user', JSON.stringify(currentUser));
+          closeAuthModal();
+          updateGreetingUI();
+          fetchDashboard();
+        } else {
+          errorMsg.innerText = data.message;
+          errorMsg.classList.remove('hidden');
+        }
+      }
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      localStorage.removeItem('chaos_user');
+      updateGreetingUI();
+      fetchDashboard();
+      alert("✓ You have logged out successfully.");
+    }
+
+    // --- Audio Synthesizer ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration) {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+    function soundSuccess() { playTone(587.33, 'sine', 0.15); setTimeout(() => playTone(880, 'sine', 0.25), 100); }
+    function soundAlert() { playTone(300, 'sawtooth', 0.2); setTimeout(() => playTone(250, 'sawtooth', 0.3), 150); }
+
+    // --- Three.js 3D Background ---
+    let scene, camera, renderer, particles, mouseX = 0, mouseY = 0;
+    function init3D() {
+      const canvas = document.getElementById('three-canvas');
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+      camera.position.z = 400;
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const geometry = new THREE.BufferGeometry();
+      const count = 700;
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 1000;
+        positions[i + 1] = (Math.random() - 0.5) * 1000;
+        positions[i + 2] = (Math.random() - 0.5) * 800;
+        colors[i] = 0.2 + Math.random() * 0.3;
+        colors[i + 1] = 0.6 + Math.random() * 0.4;
+        colors[i + 2] = 0.9 + Math.random() * 0.1;
+      }
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 3, vertexColors: true, transparent: true, opacity: 0.65 }));
+      scene.add(particles);
+
+      window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+      document.addEventListener('mousemove', (e) => { mouseX = (e.clientX - window.innerWidth / 2) * 0.2; mouseY = (e.clientY - window.innerHeight / 2) * 0.2; });
+      animate3D();
+    }
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      particles.rotation.y += 0.001; particles.rotation.x += 0.0005;
+      camera.position.x += (mouseX - camera.position.x) * 0.03;
+      camera.position.y += (-mouseY - camera.position.y) * 0.03;
+      camera.lookAt(scene.position);
+      renderer.render(scene, camera);
+    }
+
+    window.onload = () => {
+      init3D();
+      updateGreetingUI();
+      fetchDashboard();
+    };
+
+    // --- Voice Dictation ---
+    let recognizing = false, recognition;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
+      recognition.onstart = () => { recognizing = true; document.getElementById('voice-txt').innerText = "Listening..."; document.getElementById('voice-dot').className = "w-2 h-2 rounded-full bg-rose-500 animate-ping"; };
+      recognition.onresult = (e) => { document.getElementById('text-input').value = e.results[0][0].transcript; soundSuccess(); submitText(); };
+      recognition.onerror = () => stopVoice(); recognition.onend = () => stopVoice();
+    }
+    function startVoiceInput() { if (!recognition) return alert("Speech recognition not supported in this browser."); recognizing ? (recognition.stop(), stopVoice()) : recognition.start(); }
+    function stopVoice() { recognizing = false; document.getElementById('voice-txt').innerText = "🎙️ Speak Notice"; document.getElementById('voice-dot').className = "w-2 h-2 rounded-full bg-cyan-400"; }
+
+    // --- AI Chatbot ---
+    function toggleChatbot() { document.getElementById('chatbot-window').classList.toggle('hidden'); }
+    function askBotPreset(q) { document.getElementById('chat-user-input').value = q; sendChatMessage(); }
+    function handleChatEnter(e) { if (e.key === 'Enter') sendChatMessage(); }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML += `<div class="bg-cyan-600 text-white p-2.5 rounded-2xl rounded-tr-none ml-auto max-w-[85%] font-medium">${text}</div>`;
+      input.value = ""; chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const loadingId = "load-" + Date.now();
+      chatMessages.innerHTML += `<div id="${loadingId}" class="bg-slate-900 text-slate-400 p-2.5 rounded-2xl rounded-tl-none border border-slate-800 max-w-[85%] font-mono animate-pulse">⚡ Analyzing notices...</div>`;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+          body: JSON.stringify({query: text})
+        });
+        const data = await res.json();
+        document.getElementById(loadingId).remove();
+        chatMessages.innerHTML += `<div class="bg-slate-900/90 text-slate-100 p-3 rounded-2xl rounded-tl-none border border-cyan-500/30 max-w-[85%] whitespace-pre-line leading-relaxed shadow-lg">${data.reply}</div>`;
+        soundSuccess();
+      } catch(e) {
+        document.getElementById(loadingId).remove();
+        chatMessages.innerHTML += `<div class="bg-rose-950/80 text-rose-300 p-2.5 rounded-2xl rounded-tl-none border border-rose-800 max-w-[85%]">⚠️ Error connecting to Copilot.</div>`;
+      }
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // --- Dashboard Core Operations ---
+    let activeConflicts = [];
+    async function fetchDashboard() {
+      try {
+        const res = await fetch('/api/dashboard', { headers: getAuthHeaders() });
+        const data = await res.json();
+        activeConflicts = data.conflicts || [];
+        renderConflicts(activeConflicts);
+        renderTasks(data.tasks);
+
+        document.getElementById('metric-docs').innerText = data.metrics.total_docs;
+        document.getElementById('metric-resolved').innerText = data.metrics.resolved_tasks;
+        document.getElementById('metric-conflicts').innerText = data.metrics.active_conflicts;
+        document.getElementById('metric-conf').innerText = data.metrics.ai_confidence;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function clearEverything() {
+      await fetch('/api/clear', {method: 'POST', headers: getAuthHeaders()});
+      document.getElementById('conflict-container').innerHTML = '';
+      document.getElementById('conflict-container').classList.add('hidden');
+      soundSuccess();
+      await fetchDashboard();
+    }
+
+    function renderConflicts(conflicts) {
+      const container = document.getElementById('conflict-container');
+      if (!conflicts || conflicts.length === 0) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+      soundAlert();
+
+      container.innerHTML = conflicts.map(c => `
+        <div class="glass p-5 rounded-3xl border-2 border-amber-500/80 shadow-[0_0_30px_rgba(245,158,11,0.25)] animate-pulse">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="bg-amber-500 text-black text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">RADAR CONFLICT</span>
+                <h3 class="font-bold text-amber-200 text-sm tracking-wide">Target: ${c.task_title}</h3>
+              </div>
+              <p class="text-xs text-amber-300/80 mt-1">
+                Contradictory deadline vectors: <b>"${c.old_date}"</b> vs <b>"${c.new_date}"</b>.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button onclick="openDiffModal('${c.id}')" class="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-xs px-3.5 py-2 rounded-xl font-bold text-cyan-300 shadow-sm flex items-center gap-1.5 transition">🔍 Matrix Diff</button>
+              <button onclick="resolveConflict('${c.id}', '${c.old_date}')" class="bg-slate-900 border border-amber-600/60 hover:bg-amber-950 text-xs px-3.5 py-2 rounded-xl font-bold text-amber-300 transition">Keep ${c.old_date}</button>
+              <button onclick="resolveConflict('${c.id}', '${c.new_date}')" class="bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white text-xs px-4 py-2 rounded-xl font-black shadow-lg transition">Override to ${c.new_date}</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTasks(tasks) {
+      const tbody = document.getElementById('task-table-body');
+      if (!tasks || tasks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-mono">NO ACTIVE ENTITIES INGESTED IN THIS ACCOUNT.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = tasks.map(t => {
+        let statusBadge = `<span class="bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-2.5 py-1 rounded-full font-mono text-[10px]">✓ VERIFIED</span>`;
+        if (t.status === 'duplicate') statusBadge = `<span class="bg-slate-900 text-slate-400 border border-slate-700 px-2.5 py-1 rounded-full font-mono text-[10px]">DUPLICATE</span>`;
+        else if (t.status === 'ambiguous') statusBadge = `<span class="bg-purple-950 text-purple-300 border border-purple-700 px-2.5 py-1 rounded-full font-mono text-[10px] font-bold">⚠️ AMBIGUOUS</span>`;
+
+        return `
+        <tr class="hover:bg-slate-900/40 transition border-b border-slate-800/40">
+          <td class="p-4 font-bold text-slate-100">${t.title}</td>
+          <td class="p-4 font-black font-mono ${t.status === 'ambiguous' ? 'text-purple-400' : 'text-cyan-400'}">${t.deadline}</td>
+          <td class="p-4"><span class="bg-slate-900 border border-slate-700 text-slate-300 font-mono px-2 py-0.5 rounded text-[11px]">${t.subject}</span></td>
+          <td class="p-4 text-[11px] text-slate-400 font-mono">${t.source_type}</td>
+          <td class="p-4">${statusBadge}</td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="downloadICS('${encodeURIComponent(t.title)}', '${encodeURIComponent(t.deadline)}', '${encodeURIComponent(t.source_snippet)}')" class="text-[11px] bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 px-2.5 py-1.5 rounded-lg font-mono font-bold transition">🗓️ Sync</button>
+            <button onclick="alert('Digital Trail Evidence:\\n\\n' + decodeURIComponent('${encodeURIComponent(t.source_snippet)}'))" class="text-[11px] text-slate-400 hover:text-white px-2 py-1 font-mono">🔍 Trace</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function downloadICS(title, deadline, snippet) {
+      const cleanTitle = decodeURIComponent(title);
+      const cleanSnippet = decodeURIComponent(snippet);
+      const now = new Date().toISOString().replace(/-|:|\.\d+/g, "");
+      const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//ChaosEngine//MultiUser//EN\nBEGIN:VEVENT\nUID:${Date.now()}@chaosengine.ai\nDTSTAMP:${now}\nDTSTART:${now}\nSUMMARY:${cleanTitle}\nDESCRIPTION:Extracted from source: ${cleanSnippet}\nSTATUS:CONFIRMED\nEND:VEVENT\nEND:VCALENDAR`;
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `${cleanTitle.replace(/\s+/g, '_')}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      soundSuccess();
+    }
+
+    function openDiffModal(conflictId) {
+      const c = activeConflicts.find(x => x.id === conflictId);
+      if (!c) return;
+      document.getElementById('diff-old-text').innerText = `"${c.old_source}"`;
+      document.getElementById('diff-old-date').innerText = c.old_date;
+      document.getElementById('diff-new-text').innerText = `"${c.new_source}"`;
+      document.getElementById('diff-new-date').innerText = c.new_date;
+      document.getElementById('diff-modal').classList.remove('hidden');
+    }
+    function closeDiffModal() { document.getElementById('diff-modal').classList.add('hidden'); }
+
+    async function sendWhatsAppMessage() {
+      const input = document.getElementById('wa-input');
+      const text = input.value.trim();
+      if (!text) return;
+      injectWhatsApp(text);
+      input.value = "";
+    }
+
+    async function injectWhatsApp(text) {
+      const chatBox = document.getElementById('wa-chat-box');
+      chatBox.innerHTML += `
+        <div class="bg-emerald-900/80 text-white p-2.5 rounded-xl max-w-[85%] self-end ml-auto border border-emerald-700/60 shadow-md">
+          <div class="font-bold text-[10px] text-emerald-300 font-mono">CIRCULAR BROADCAST:</div>
+          <div>${text}</div>
+          <div class="text-[9px] text-emerald-400 text-right mt-1 font-mono">Stream Synchronized ✓✓</div>
+        </div>
+      `;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      await fetch('/api/ingest/text', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+        body: JSON.stringify({text, source_type: "WhatsApp Broadcast"})
+      });
+      await fetchDashboard();
+    }
+
+    async function submitText() {
+      const text = document.getElementById('text-input').value;
+      if (!text) return alert("Please enter notice text!");
+      await fetch('/api/ingest/text', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+        body: JSON.stringify({text, source_type: "Pasted Text"})
+      });
+      document.getElementById('text-input').value = "";
+      soundSuccess();
+      await fetchDashboard();
+    }
+
+    async function submitPdf() {
+      const fileInput = document.getElementById('pdf-input');
+      if (!fileInput.files[0]) return alert("Select PDF file");
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      await fetch('/api/ingest/pdf', {method: 'POST', headers: getAuthHeaders(), body: formData});
+      fileInput.value = "";
+      soundSuccess();
+      await fetchDashboard();
+    }
+
+    async function submitManual() {
+      const title = document.getElementById('manual-title').value;
+      const deadline = document.getElementById('manual-date').value;
+      const subject = document.getElementById('manual-subject').value;
+      if (!title) return alert("Enter task name");
+      await fetch('/api/ingest/manual', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+        body: JSON.stringify({title, deadline, subject})
+      });
+      document.getElementById('manual-title').value = "";
+      document.getElementById('manual-date').value = "";
+      document.getElementById('manual-subject').value = "";
+      soundSuccess();
+      await fetchDashboard();
+    }
+
+    async function resolveConflict(conflict_id, chosen_date) {
+      await fetch('/api/resolve-conflict', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+        body: JSON.stringify({conflict_id, chosen_date})
+      });
+      soundSuccess();
+      await fetchDashboard();
+    }
+  </script>
+</body>
+</html>
