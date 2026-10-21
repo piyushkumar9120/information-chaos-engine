@@ -1,3 +1,4 @@
+> 🔴 **Live Working App:** https://information-chaos-engine.onrender.com
 # ⚡ Information Chaos Engine (PS-01)
 > **Autonomous Multi-Modal Information Extraction, Entity Resolution & Conflict Radar System**  
 > *Built for FlipHack '26 / FlipNotes × AKTU Hackathon*
